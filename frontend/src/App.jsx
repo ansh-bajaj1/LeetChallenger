@@ -133,6 +133,8 @@ function App() {
     questionNumbers: '',
     note: '',
   });
+  const [profileLeetCodeUsername, setProfileLeetCodeUsername] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
 
   const api = useMemo(() => createApi(auth.token), [auth.token]);
 
@@ -269,6 +271,32 @@ function App() {
     }
   };
 
+  const handleCompleteProfile = async (event) => {
+    event.preventDefault();
+    setError('');
+    setProfileSaving(true);
+
+    try {
+      const response = await api.post('/auth/profile/leetcode', {
+        leetcodeUsername: profileLeetCodeUsername,
+      });
+
+      setAuth((prev) => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          leetcodeUsername: response.data.user.leetcodeUsername,
+        },
+      }));
+      setProfileLeetCodeUsername('');
+      await loadDashboard();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to update profile');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   const handleCompare = async (username) => {
     setError('');
     try {
@@ -399,6 +427,9 @@ function App() {
         <div>
           <p className="font-display text-xl">Welcome, {auth.user?.name}</p>
           <p className="text-sm text-[var(--muted)]">@{auth.user?.username}</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            LeetCode: {auth.user?.leetcodeUsername ? `@${auth.user.leetcodeUsername}` : 'Not linked yet'}
+          </p>
           <p className="mt-1 text-xs text-[var(--muted)]">Challenge inbox unread: {unreadCount}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -420,6 +451,29 @@ function App() {
       </header>
 
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+
+      {!auth.user?.leetcodeUsername && (
+        <section className="glass-card mb-6 rounded-2xl border-2 border-[var(--accent)]/40 p-5">
+          <h2 className="font-display text-2xl">Complete profile to unlock compare</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Add your LeetCode username once. We verify it before enabling compare charts.
+          </p>
+          <form onSubmit={handleCompleteProfile} className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+              placeholder="Your LeetCode username"
+              value={profileLeetCodeUsername}
+              onChange={(e) => setProfileLeetCodeUsername(e.target.value)}
+            />
+            <button
+              disabled={profileSaving}
+              className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white disabled:opacity-60"
+            >
+              {profileSaving ? 'Saving...' : 'Save username'}
+            </button>
+          </form>
+        </section>
+      )}
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="glass-card rounded-2xl p-5">
@@ -491,12 +545,16 @@ function App() {
                   <div>
                     <p className="font-medium">{mate.name}</p>
                     <p className="text-sm text-[var(--muted)]">@{mate.username}</p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {mate.leetcodeUsername ? `LeetCode: @${mate.leetcodeUsername}` : 'LeetCode not linked'}
+                    </p>
                   </div>
                   <div className="text-right">
                     <button
                       type="button"
                       onClick={() => handleCompare(mate.username)}
-                      className="rounded-lg bg-black px-3 py-2 text-xs text-white"
+                      disabled={!auth.user?.leetcodeUsername || !mate.canCompare}
+                      className="rounded-lg bg-black px-3 py-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Compare
                     </button>

@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    leetcodeUsername: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+      default: null,
+    },
     passwordHash: {
       type: String,
       required: true,
