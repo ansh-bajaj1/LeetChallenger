@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f2e8;
+  --bg-soft: #fdfaf3;
+  --text: #1f2933;
+  --muted: #5a6977;
+  --card: rgba(255, 255, 255, 0.7);
+  --border: rgba(31, 41, 51, 0.14);
+  --accent: #d9653b;
+  --accent-soft: #f4c7b6;
+}
+
+[data-theme='dark'] {
+  --bg: #111419;
+  --bg-soft: #1a2027;
+  --text: #f7f5ef;
+  --muted: #b8c1cc;
+  --card: rgba(27, 32, 39, 0.78);
+  --border: rgba(255, 255, 255, 0.14);
+  --accent: #ff8f65;
+  --accent-soft: #3f2a22;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(217, 101, 59, 0.24), transparent 34%),
+    radial-gradient(circle at 80% 10%, rgba(42, 115, 180, 0.2), transparent 38%),
+    linear-gradient(130deg, var(--bg), var(--bg-soft));
+  background-attachment: fixed;
+}
+
+.glass-card {
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(10px);
+}
