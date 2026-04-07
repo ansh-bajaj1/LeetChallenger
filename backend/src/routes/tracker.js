@@ -118,6 +118,8 @@ router.get('/connections', async (req, res) => {
       connectionId: connection._id,
       username: friend.username,
       name: friend.name,
+      leetcodeUsername: friend.leetcodeUsername || null,
+      canCompare: Boolean(friend.leetcodeUsername),
       linkedAt: connection.updatedAt,
     };
   });
@@ -161,8 +163,9 @@ router.get('/compare/:username', async (req, res) => {
   try {
     const targetUsername = String(req.params.username).trim().toLowerCase();
     const targetUser = await User.findOne({ username: targetUsername });
+    const currentUser = await User.findById(req.user.id);
 
-    if (!targetUser) {
+    if (!targetUser || !currentUser) {
       return res.status(404).json({ message: 'Target user not found' });
     }
 
@@ -172,18 +175,26 @@ router.get('/compare/:username', async (req, res) => {
       return res.status(403).json({ message: 'You are not connected with this user' });
     }
 
+    if (!currentUser.leetcodeUsername || !targetUser.leetcodeUsername) {
+      return res.status(400).json({
+        message: 'Both users must complete profile with LeetCode username before compare',
+      });
+    }
+
     const [myStats, targetStats] = await Promise.all([
-      fetchLeetCodeStats(req.user.username),
-      fetchLeetCodeStats(targetUsername),
+      fetchLeetCodeStats(currentUser.leetcodeUsername),
+      fetchLeetCodeStats(targetUser.leetcodeUsername),
     ]);
 
     return res.json({
       me: {
-        username: req.user.username,
+        username: currentUser.username,
+        leetcodeUsername: currentUser.leetcodeUsername,
         stats: myStats,
       },
       friend: {
-        username: targetUsername,
+        username: targetUser.username,
+        leetcodeUsername: targetUser.leetcodeUsername,
         stats: targetStats,
       },
       deltaSolved: myStats.totalSolved - targetStats.totalSolved,
