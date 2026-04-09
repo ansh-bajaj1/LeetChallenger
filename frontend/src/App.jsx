@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { createApi } from './api';
+import Aurora from './components/backgrounds/Aurora';
 
 const STORAGE_KEY = 'leetcode_tracer_auth';
 
@@ -318,111 +319,122 @@ function App() {
     setUnreadCount(0);
   };
 
+  const auroraLayer = (
+    <div className="pointer-events-none fixed inset-0 -z-10 opacity-85">
+      <Aurora colorStops={['#7cff67', '#B19EEF', '#5227FF']} amplitude={1} blend={0.5} />
+    </div>
+  );
+
   if (!auth.token) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-8">
-        <section className="glass-card grid w-full overflow-hidden rounded-3xl md:grid-cols-2">
-          <div className="bg-[var(--accent-soft)]/65 p-8 sm:p-12">
-            <p className="font-display text-sm uppercase tracking-[0.28em] text-[var(--muted)]">LeetCode Tracer</p>
-            <h1 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
-              Challenge your coding friends, daily.
-            </h1>
-            <p className="mt-6 max-w-md text-[var(--muted)]">
-              Send accept requests for mutual comparison, or directly track any LeetCode username in one place.
-            </p>
-            <button
-              type="button"
-              className="mt-8 rounded-full border border-[var(--border)] bg-black/85 px-5 py-2 text-sm font-medium text-white"
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            >
-              Theme: {theme}
-            </button>
-          </div>
-          <div className="p-8 sm:p-12">
-            <div className="mb-6 inline-flex rounded-full bg-black/5 p-1 text-sm">
+      <>
+        {auroraLayer}
+        <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-8">
+          <section className="glass-card grid w-full overflow-hidden rounded-3xl md:grid-cols-2">
+            <div className="bg-[var(--accent-soft)]/65 p-8 sm:p-12">
+              <p className="font-display text-sm uppercase tracking-[0.28em] text-[var(--muted)]">LeetCode Tracer</p>
+              <h1 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
+                Challenge your coding friends, daily.
+              </h1>
+              <p className="mt-6 max-w-md text-[var(--muted)]">
+                Send accept requests for mutual comparison, or directly track any LeetCode username in one place.
+              </p>
               <button
                 type="button"
-                onClick={() => setMode('login')}
-                className={`rounded-full px-4 py-2 ${mode === 'login' ? 'bg-black text-white' : 'text-[var(--muted)]'}`}
+                className="mt-8 rounded-full border border-[var(--border)] bg-black/85 px-5 py-2 text-sm font-medium text-white"
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
               >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('register')}
-                className={`rounded-full px-4 py-2 ${mode === 'register' ? 'bg-black text-white' : 'text-[var(--muted)]'}`}
-              >
-                Register
+                Theme: {theme}
               </button>
             </div>
-
-            {mode === 'login' ? (
-              <form className="space-y-4" onSubmit={handleLogin}>
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  placeholder="Email or username"
-                  value={loginForm.emailOrUsername}
-                  onChange={(e) => setLoginForm((prev) => ({ ...prev, emailOrUsername: e.target.value }))}
-                />
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  type="password"
-                  placeholder="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                />
+            <div className="p-8 sm:p-12">
+              <div className="mb-6 inline-flex rounded-full bg-black/5 p-1 text-sm">
                 <button
-                  disabled={loading}
-                  className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-60"
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className={`rounded-full px-4 py-2 ${mode === 'login' ? 'bg-black text-white' : 'text-[var(--muted)]'}`}
                 >
-                  {loading ? 'Please wait...' : 'Login'}
+                  Login
                 </button>
-              </form>
-            ) : (
-              <form className="space-y-4" onSubmit={handleRegister}>
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  placeholder="Full name"
-                  value={registerForm.name}
-                  onChange={(e) => setRegisterForm((prev) => ({ ...prev, name: e.target.value }))}
-                />
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  placeholder="App username"
-                  value={registerForm.username}
-                  onChange={(e) => setRegisterForm((prev) => ({ ...prev, username: e.target.value }))}
-                />
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  placeholder="Email"
-                  value={registerForm.email}
-                  onChange={(e) => setRegisterForm((prev) => ({ ...prev, email: e.target.value }))}
-                />
-                <input
-                  className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-                  type="password"
-                  placeholder="Password"
-                  value={registerForm.password}
-                  onChange={(e) => setRegisterForm((prev) => ({ ...prev, password: e.target.value }))}
-                />
                 <button
-                  disabled={loading}
-                  className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-60"
+                  type="button"
+                  onClick={() => setMode('register')}
+                  className={`rounded-full px-4 py-2 ${mode === 'register' ? 'bg-black text-white' : 'text-[var(--muted)]'}`}
                 >
-                  {loading ? 'Please wait...' : 'Create account'}
+                  Register
                 </button>
-              </form>
-            )}
+              </div>
 
-            {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-          </div>
-        </section>
-      </main>
+              {mode === 'login' ? (
+                <form className="space-y-4" onSubmit={handleLogin}>
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    placeholder="Email or username"
+                    value={loginForm.emailOrUsername}
+                    onChange={(e) => setLoginForm((prev) => ({ ...prev, emailOrUsername: e.target.value }))}
+                  />
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    type="password"
+                    placeholder="Password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
+                  />
+                  <button
+                    disabled={loading}
+                    className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-60"
+                  >
+                    {loading ? 'Please wait...' : 'Login'}
+                  </button>
+                </form>
+              ) : (
+                <form className="space-y-4" onSubmit={handleRegister}>
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    placeholder="Full name"
+                    value={registerForm.name}
+                    onChange={(e) => setRegisterForm((prev) => ({ ...prev, name: e.target.value }))}
+                  />
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    placeholder="App username"
+                    value={registerForm.username}
+                    onChange={(e) => setRegisterForm((prev) => ({ ...prev, username: e.target.value }))}
+                  />
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    placeholder="Email"
+                    value={registerForm.email}
+                    onChange={(e) => setRegisterForm((prev) => ({ ...prev, email: e.target.value }))}
+                  />
+                  <input
+                    className="w-full rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                    type="password"
+                    placeholder="Password"
+                    value={registerForm.password}
+                    onChange={(e) => setRegisterForm((prev) => ({ ...prev, password: e.target.value }))}
+                  />
+                  <button
+                    disabled={loading}
+                    className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white disabled:opacity-60"
+                  >
+                    {loading ? 'Please wait...' : 'Create account'}
+                  </button>
+                </form>
+              )}
+
+              {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+            </div>
+          </section>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
+    <>
+      {auroraLayer}
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
       <header className="glass-card mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-4">
         <div>
           <p className="font-display text-xl">Welcome, {auth.user?.name}</p>
@@ -718,7 +730,8 @@ function App() {
           </p>
         </section>
       )}
-    </main>
+      </main>
+    </>
   );
 }
 
