@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { createApi } from './api';
-import Aurora from './components/backgrounds/Aurora';
+
 
 const STORAGE_KEY = 'leetcode_tracer_auth';
 
@@ -104,10 +104,11 @@ function App() {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : defaultAuthState;
   });
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
   const [mode, setMode] = useState('login');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState('overview');
 
   const [registerForm, setRegisterForm] = useState({
     name: '',
@@ -142,6 +143,8 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
@@ -317,20 +320,13 @@ function App() {
     setChallengeInbox([]);
     setChallengeSent([]);
     setUnreadCount(0);
+    setActiveSection('overview');
   };
-
-  const auroraLayer = (
-    <div className="pointer-events-none fixed inset-0 -z-10 opacity-85">
-      <Aurora colorStops={['#7cff67', '#B19EEF', '#5227FF']} amplitude={1} blend={0.5} />
-    </div>
-  );
 
   if (!auth.token) {
     return (
-      <>
-        {auroraLayer}
-        <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-8">
-          <section className="glass-card grid w-full overflow-hidden rounded-3xl md:grid-cols-2">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-10 sm:px-8">
+        <section className="glass-card grid w-full overflow-hidden rounded-3xl md:grid-cols-2">
             <div className="bg-[var(--accent-soft)]/65 p-8 sm:p-12">
               <p className="font-display text-sm uppercase tracking-[0.28em] text-[var(--muted)]">LeetCode Tracer</p>
               <h1 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
@@ -426,15 +422,38 @@ function App() {
               {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             </div>
           </section>
-        </main>
-      </>
+      </main>
     );
   }
 
   return (
     <>
-      {auroraLayer}
-      <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
+  
+      <nav className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-8">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: 'overview', label: 'Overview' },
+            { id: 'requests', label: 'Requests' },
+            { id: 'tracking', label: 'Tracking' },
+            { id: 'challenges', label: 'Challenges' },
+            { id: 'compare', label: 'Compare' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveSection(item.id)}
+              className={`rounded-full px-4 py-2 text-sm ${
+                activeSection === item.id
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'border border-[var(--border)] text-[var(--muted)]'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
       <header className="glass-card mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-4">
         <div>
           <p className="font-display text-xl">Welcome, {auth.user?.name}</p>
@@ -464,159 +483,175 @@ function App() {
 
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
 
-      {!auth.user?.leetcodeUsername && (
-        <section className="glass-card mb-6 rounded-2xl border-2 border-[var(--accent)]/40 p-5">
-          <h2 className="font-display text-2xl">Complete profile to unlock compare</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            Add your LeetCode username once. We verify it before enabling compare charts.
-          </p>
-          <form onSubmit={handleCompleteProfile} className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <input
-              className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-              placeholder="Your LeetCode username"
-              value={profileLeetCodeUsername}
-              onChange={(e) => setProfileLeetCodeUsername(e.target.value)}
-            />
-            <button
-              disabled={profileSaving}
-              className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white disabled:opacity-60"
-            >
-              {profileSaving ? 'Saving...' : 'Save username'}
-            </button>
-          </form>
-        </section>
+      {activeSection === 'overview' && (
+        <>
+          {!auth.user?.leetcodeUsername && (
+            <section className="glass-card mb-6 rounded-2xl border-2 border-[var(--accent)]/40 p-5">
+              <h2 className="font-display text-2xl">Complete profile to unlock compare</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Add your LeetCode username once. We verify it before enabling compare charts.
+              </p>
+              <form onSubmit={handleCompleteProfile} className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <input
+                  className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                  placeholder="Your LeetCode username"
+                  value={profileLeetCodeUsername}
+                  onChange={(e) => setProfileLeetCodeUsername(e.target.value)}
+                />
+                <button
+                  disabled={profileSaving}
+                  className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white disabled:opacity-60"
+                >
+                  {profileSaving ? 'Saving...' : 'Save username'}
+                </button>
+              </form>
+            </section>
+          )}
+        </>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="glass-card rounded-2xl p-5">
-          <h2 className="font-display text-2xl">Compete with a friend</h2>
-          <p className="mb-4 mt-1 text-sm text-[var(--muted)]">Send request by app username (they must accept).</p>
-          <form onSubmit={handleSendRequest} className="flex flex-col gap-3 sm:flex-row">
-            <input
-              className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-              placeholder="Friend app username"
-              value={requestUsername}
-              onChange={(e) => setRequestUsername(e.target.value)}
-            />
-            <button className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white">Send</button>
-          </form>
-        </div>
+      {activeSection === 'requests' && (
+        <>
+          <section className="grid gap-4 lg:grid-cols-2">
+            <div className="glass-card rounded-2xl p-5">
+              <h2 className="font-display text-2xl">Compete with a friend</h2>
+              <p className="mb-4 mt-1 text-sm text-[var(--muted)]">Send request by app username (they must accept).</p>
+              <form onSubmit={handleSendRequest} className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                  placeholder="Friend app username"
+                  value={requestUsername}
+                  onChange={(e) => setRequestUsername(e.target.value)}
+                />
+                <button className="rounded-xl bg-[var(--accent)] px-5 py-3 font-medium text-white">Send</button>
+              </form>
+            </div>
+          </section>
 
-        <div className="glass-card rounded-2xl p-5">
-          <h2 className="font-display text-2xl">Direct tracking</h2>
-          <p className="mb-4 mt-1 text-sm text-[var(--muted)]">Track any LeetCode username without acceptance.</p>
-          <form onSubmit={handleDirectTrack} className="flex flex-col gap-3 sm:flex-row">
-            <input
-              className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
-              placeholder="LeetCode username"
-              value={directUsername}
-              onChange={(e) => setDirectUsername(e.target.value)}
-            />
-            <button className="rounded-xl bg-black px-5 py-3 font-medium text-white">Track</button>
-          </form>
-        </div>
-      </section>
-
-      <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <div className="glass-card rounded-2xl p-5">
-          <h3 className="font-display text-xl">Pending requests</h3>
-          <div className="mt-3 space-y-3">
-            {requests.length === 0 && <p className="text-sm text-[var(--muted)]">No pending requests.</p>}
-            {requests.map((req) => (
-              <div key={req._id} className="rounded-xl border border-[var(--border)] p-3">
-                <p className="font-medium">{req.requester.name}</p>
-                <p className="text-sm text-[var(--muted)]">@{req.requester.username}</p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleRequestAction(req._id, 'accept')}
-                    className="rounded-lg bg-[var(--accent)] px-3 py-2 text-xs text-white"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRequestAction(req._id, 'reject')}
-                    className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs"
-                  >
-                    Reject
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-card rounded-2xl p-5">
-          <h3 className="font-display text-xl">Accepted mates</h3>
-          <div className="mt-3 space-y-3">
-            {mates.length === 0 && <p className="text-sm text-[var(--muted)]">No mates connected yet.</p>}
-            {mates.map((mate) => (
-              <div key={mate.connectionId} className="rounded-xl border border-[var(--border)] p-3">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{mate.name}</p>
-                    <p className="text-sm text-[var(--muted)]">@{mate.username}</p>
-                    <p className="text-xs text-[var(--muted)]">
-                      {mate.leetcodeUsername ? `LeetCode: @${mate.leetcodeUsername}` : 'LeetCode not linked'}
-                    </p>
+          <section className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="glass-card rounded-2xl p-5">
+              <h3 className="font-display text-xl">Pending requests</h3>
+              <div className="mt-3 space-y-3">
+                {requests.length === 0 && <p className="text-sm text-[var(--muted)]">No pending requests.</p>}
+                {requests.map((req) => (
+                  <div key={req._id} className="rounded-xl border border-[var(--border)] p-3">
+                    <p className="font-medium">{req.requester.name}</p>
+                    <p className="text-sm text-[var(--muted)]">@{req.requester.username}</p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleRequestAction(req._id, 'accept')}
+                        className="rounded-lg bg-[var(--accent)] px-3 py-2 text-xs text-white"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRequestAction(req._id, 'reject')}
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs"
+                      >
+                        Reject
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleCompare(mate.username)}
-                      disabled={!auth.user?.leetcodeUsername || !mate.canCompare}
-                      className="rounded-lg bg-black px-3 py-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Compare
-                    </button>
-                    <p className="mt-1 text-xs text-[var(--muted)]">Unread challenges: {mate.unreadChallenges || 0}</p>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setChallengeForm((prev) => ({
-                        ...prev,
-                        username: mate.username,
-                      }))
-                    }
-                    className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs"
-                  >
-                    Use in challenge form
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        <div className="glass-card rounded-2xl p-5">
-          <h3 className="font-display text-xl">Direct tracked users</h3>
-          <div className="mt-3 space-y-3">
-            {tracked.length === 0 && <p className="text-sm text-[var(--muted)]">No direct users tracked yet.</p>}
-            {tracked.map((item) => (
-              <div key={item.id} className="rounded-xl border border-[var(--border)] p-3">
-                <p className="font-medium">@{item.username}</p>
-                {item.error ? (
-                  <p className="text-sm text-red-500">{item.error}</p>
-                ) : (
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                    <StatCard title="Total" value={item.stats.totalSolved} />
-                    <StatCard title="Acceptance" value={`${item.stats.acceptanceRate}%`} />
-                    <StatCard title="Easy" value={item.stats.easySolved} />
-                    <StatCard title="Medium" value={item.stats.mediumSolved} />
-                    <StatCard title="Hard" value={item.stats.hardSolved} />
-                    <StatCard title="Ranking" value={item.stats.ranking} />
+            <div className="glass-card rounded-2xl p-5">
+              <h3 className="font-display text-xl">Accepted mates</h3>
+              <div className="mt-3 space-y-3">
+                {mates.length === 0 && <p className="text-sm text-[var(--muted)]">No mates connected yet.</p>}
+                {mates.map((mate) => (
+                  <div key={mate.connectionId} className="rounded-xl border border-[var(--border)] p-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{mate.name}</p>
+                        <p className="text-sm text-[var(--muted)]">@{mate.username}</p>
+                        <p className="text-xs text-[var(--muted)]">
+                          {mate.leetcodeUsername ? `LeetCode: @${mate.leetcodeUsername}` : 'LeetCode not linked'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleCompare(mate.username)}
+                          disabled={!auth.user?.leetcodeUsername || !mate.canCompare}
+                          className="rounded-lg bg-black px-3 py-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Compare
+                        </button>
+                        <p className="mt-1 text-xs text-[var(--muted)]">Unread challenges: {mate.unreadChallenges || 0}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setChallengeForm((prev) => ({
+                            ...prev,
+                            username: mate.username,
+                          }))
+                        }
+                        className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs"
+                      >
+                        Use in challenge form
+                      </button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
+        </>
+      )}
 
+      {activeSection === 'tracking' && (
+        <>
+          <section className="grid gap-4">
+            <div className="glass-card rounded-2xl p-5">
+              <h2 className="font-display text-2xl">Direct tracking</h2>
+              <p className="mb-4 mt-1 text-sm text-[var(--muted)]">Track any LeetCode username without acceptance.</p>
+              <form onSubmit={handleDirectTrack} className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  className="flex-1 rounded-xl border border-[var(--border)] bg-transparent px-4 py-3 outline-none"
+                  placeholder="LeetCode username"
+                  value={directUsername}
+                  onChange={(e) => setDirectUsername(e.target.value)}
+                />
+                <button className="rounded-xl bg-black px-5 py-3 font-medium text-white">Track</button>
+              </form>
+            </div>
+          </section>
+
+          <section className="mt-6">
+            <div className="glass-card rounded-2xl p-5">
+              <h3 className="font-display text-xl">Direct tracked users</h3>
+              <div className="mt-3 space-y-3">
+                {tracked.length === 0 && <p className="text-sm text-[var(--muted)]">No direct users tracked yet.</p>}
+                {tracked.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-[var(--border)] p-3">
+                    <p className="font-medium">@{item.username}</p>
+                    {item.error ? (
+                      <p className="text-sm text-red-500">{item.error}</p>
+                    ) : (
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                        <StatCard title="Total" value={item.stats.totalSolved} />
+                        <StatCard title="Acceptance" value={`${item.stats.acceptanceRate}%`} />
+                        <StatCard title="Easy" value={item.stats.easySolved} />
+                        <StatCard title="Medium" value={item.stats.mediumSolved} />
+                        <StatCard title="Hard" value={item.stats.hardSolved} />
+                        <StatCard title="Ranking" value={item.stats.ranking} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+      {activeSection === 'challenges' && (
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <div className="glass-card rounded-2xl p-5 lg:col-span-1">
           <h3 className="font-display text-xl">Send challenge</h3>
@@ -694,8 +729,9 @@ function App() {
           </div>
         </div>
       </section>
+      )}
 
-      {compare && (
+      {activeSection === 'compare' && compare && (
         <section className="glass-card mt-6 rounded-2xl p-5">
           <h3 className="font-display text-2xl">Comparison: @{compare.me.username} vs @{compare.friend.username}</h3>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
