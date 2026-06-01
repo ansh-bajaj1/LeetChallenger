@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: leetcode-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    plan: free
+    repo: .
+    branch: main

@@ -79,6 +79,7 @@ router.post('/register', async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Registration error:', error);
     const message = getAuthErrorMessage(error, 'Registration failed');
     const statusCode = error?.code === 11000 || error?.name === 'ValidationError' ? 400 : 500;
     return res.status(statusCode).json({ message });

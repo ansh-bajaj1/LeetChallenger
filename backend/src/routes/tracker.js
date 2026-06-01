@@ -35,7 +35,13 @@ router.post('/request', async (req, res) => {
       return res.status(400).json({ message: 'Target username is required' });
     }
 
-    const recipient = await User.findOne({ username: String(username).trim().toLowerCase() });
+    const searchName = String(username).trim().toLowerCase();
+    const recipient = await User.findOne({
+      $or: [
+        { username: searchName },
+        { leetcodeUsername: searchName },
+      ],
+    });
     if (!recipient) {
       return res.status(404).json({ message: 'Target user not found' });
     }
@@ -162,7 +168,12 @@ router.get('/connections', async (req, res) => {
 router.get('/compare/:username', async (req, res) => {
   try {
     const targetUsername = String(req.params.username).trim().toLowerCase();
-    const targetUser = await User.findOne({ username: targetUsername });
+    const targetUser = await User.findOne({
+      $or: [
+        { username: targetUsername },
+        { leetcodeUsername: targetUsername },
+      ],
+    });
     const currentUser = await User.findById(req.user.id);
 
     if (!targetUser || !currentUser) {
@@ -274,6 +285,32 @@ router.get('/direct', async (req, res) => {
   return res.json({ tracked: withStats });
 });
 
+router.get('/me', async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!currentUser.leetcodeUsername) {
+      return res.status(400).json({ message: 'LeetCode username not linked yet' });
+    }
+
+    const stats = await fetchLeetCodeStats(currentUser.leetcodeUsername);
+
+    return res.json({
+      user: {
+        username: currentUser.username,
+        leetcodeUsername: currentUser.leetcodeUsername,
+      },
+      stats,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message || 'Unable to fetch stats' });
+  }
+});
+
 router.post('/challenges/send', async (req, res) => {
   try {
     const { username, questionNumbers, note } = req.body;
@@ -281,7 +318,13 @@ router.post('/challenges/send', async (req, res) => {
       return res.status(400).json({ message: 'Friend username is required' });
     }
 
-    const friend = await User.findOne({ username: String(username).trim().toLowerCase() });
+    const searchName = String(username).trim().toLowerCase();
+    const friend = await User.findOne({
+      $or: [
+        { username: searchName },
+        { leetcodeUsername: searchName },
+      ],
+    });
     if (!friend) {
       return res.status(404).json({ message: 'Friend user not found' });
     }
