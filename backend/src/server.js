@@ -16,6 +16,12 @@ let dbConnected = false;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (_, res) => {
+  res.json({
+    status: 'Backend Running'
+  });
+});
+
 app.get('/api/health', (_, res) => {
   res.json({ ok: true, service: 'leetcode-tracer-api', dbConnected });
 });
